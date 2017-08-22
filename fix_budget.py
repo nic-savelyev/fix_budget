@@ -10,7 +10,7 @@ ws = wb.active
 traffic = [1, 0.85, 0.75, 0.65, 0.06, 0.05, 0.04, 0.03, 0.02, 0, 0]
 
 #целевая стоимость конверсии
-click_value = 650
+click_value = 800
 
 #недельный бюджет
 week_budget = 30000
@@ -46,16 +46,17 @@ full_full_conv = 0
 full_full_money_fix = 0
 full_full_conv_fix = 0
 
-for q in range(1):
-    random.seed
-    cost_click = [25]*50
+cost_click = [25]*50
+random.seed
+for q in range(10):
+    
     
     #задаем вероятности конверсий и количетсво трафика ключам
     for i in range(50): 
         ver_conv[i] = random.randint(1, 50) #процент конверсии умноженный на 10
         amount_traff[i] = random.randint(1, 50)
 
-    for x in range (1, 10):
+    for x in range (1, 5):
         all_count_conv = 0
         all_count_conv_fix = 0
         money = 0
@@ -164,7 +165,10 @@ for q in range(1):
 
 
         #считаем расходы и конверсии у оптимизатора
-        cost_conv_period = money / all_count_conv
+        if all_count_conv > 0:
+            cost_conv_period = money / all_count_conv
+        else:
+            cost_conv_period = money
         all_money += money
 
         ws.cell(row=l, column=21).value = money
@@ -191,7 +195,7 @@ for q in range(1):
     #выставляем ставки
     for i in range(1, 50):
         if full_conv_per_key[i] > 0:
-            if full_costs_per_key[i] / full_conv_per_key[i] < click_value:
+            if full_costs_per_key[i] / full_conv_per_key[i] < click_value * 0.9:
                 cost_click[i] = cost_click[i] + cost_click[i]*0.1
             else:
                 cost_click[i] = cost_click[i] - cost_click[i]*0.1
@@ -206,9 +210,9 @@ for q in range(1):
 
     
 
-ws.cell(row=1, column=32).value = full_full_money
-ws.cell(row=1, column=33).value = full_full_conv
-ws.cell(row=1, column=34).value = full_full_money / full_full_conv
+ws.cell(row=1, column=32).value = full_money
+ws.cell(row=1, column=33).value = full_conv
+ws.cell(row=1, column=34).value = full_money / full_conv
 
 #ws.cell(row=2, column=32).value = full_full_money_fix
 #ws.cell(row=2, column=33).value = full_full_conv_fix
