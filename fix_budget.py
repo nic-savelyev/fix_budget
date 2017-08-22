@@ -52,7 +52,7 @@ for q in range(1):
     
     #задаем вероятности конверсий и количетсво трафика ключам
     for i in range(50): 
-        ver_conv[i] = random.randint(10, 50) #процент конверсии умноженный на 10
+        ver_conv[i] = random.randint(1, 50) #процент конверсии умноженный на 10
         amount_traff[i] = random.randint(10, 100)
 
     for x in range (1, 10):
@@ -96,17 +96,23 @@ for q in range(1):
         q = 1
         day_budget = 0
         max_day_budget = 5000
-        period_amount_traff = [0]*50
+        period_amount_traff = [[0]*10 for i in range(50)]
         day_traffic = [0]*50
-        day_costs_per_key = [0]*50   
-        while (day_budget < max_day_budget * 0.9) and (q <= 10):
-            #максимальное количетсво трафика за день у ключа делим на 6 порций
-            for i in range(50):
-                k = round(amount_traff[i] / 6, 0)
-                period_amount_traff[i] = random.randint(1, k)
+        day_costs_per_key = [0]*50
 
+        #максимальное количетсво трафика у ключа за период
+        for i in range(50):
+            if amount_traff[i] >= 10:
+                for j in range(amount_traff[i] // 10):
+                    period_amount_traff[i][j] = amount_traff[i] // 10
+                for j in range(amount_traff[i] % 10):
+                    period_amount_traff[i][j] += amount_traff[i] % 10
+
+        j = 0
+        while (day_budget < max_day_budget * 0.9) and (q <= 10):
+            for i in range(50):
                 #считаем количество трафика за период для оптимизатора
-                traff_period[i] = round(period_amount_traff[i] * traffic [num_pos[i]], 0)
+                traff_period[i] = round(period_amount_traff[i][j] * traffic [num_pos[i]], 0)
                 day_traffic[i] += traff_period[i]
 
                 #расходы по ключу оптимизатора
@@ -115,9 +121,10 @@ for q in range(1):
                 day_costs_per_key[i] += costs_per_key[i]
 
                 #дневной расход
-                day_budget += costs_per_key[v]
+                day_budget += costs_per_key[i]
                 
             q += 1
+            j += 1
 
 
         count_conv = [0] * 50
@@ -125,7 +132,7 @@ for q in range(1):
             #количество конверсий оптимизатора
             for j in range(int(day_traffic[v])):
                 if random.randint(1, 1000) <= ver_conv[v]:
-                    count_conv[j] += 1
+                    count_conv[v] += 1
         
             all_count_conv += count_conv[v]
             full_conv_per_key[v] += count_conv[v]
@@ -142,7 +149,7 @@ for q in range(1):
             ws.cell(row=v+u, column=18).value = cpc[v]
             ws.cell(row=v+u, column=19).value = num_pos[v]
             ws.cell(row=v+u, column=20).value = traff_period[v]
-            ws.cell(row=v+u, column=21).value = costs_per_key[v]
+            ws.cell(row=v+u, column=21).value = day_costs_per_key[v]
             ws.cell(row=v+u, column=22).value = count_conv[v]
             ws.cell(row=v+u, column=23).value = conv_cost[v]
             ws.cell(row=v+u, column=24).value = cost_click[v]
@@ -156,51 +163,42 @@ for q in range(1):
         cost_conv_period = money / all_count_conv
         all_money += money
 
-        #ввывод итоговых цифр за период
-        #ws.cell(row=l, column=14).value = money_fix
         ws.cell(row=l, column=21).value = money
-        #ws.cell(row=l, column=15).value = all_count_conv_fix
         ws.cell(row=l, column=22).value = all_count_conv
-        #ws.cell(row=l, column=16).value = cost_conv_period_fix
         ws.cell(row=l, column=23).value = cost_conv_period
 
-        U = 0
         full_money += money
         full_conv += all_count_conv
         
         full_money_fix += money_fix
         full_conv_fix += all_count_conv_fix
-        #выставляем ставки
-        for i in range(1, 50):
-            if full_conv_per_key[i] > 0:
-                if full_costs_per_key[i] / full_conv_per_key[i] < click_value:
-                    cost_click[i] = cost_click[i] + cost_click[i]*0.1
-                else:
-                    cost_click[i] = cost_click[i] - cost_click[i]*0.1
-                    
-                if full_costs_per_key[i] / full_conv_per_key[i] > click_value*1.5:
-                    cost_click[i] = 0
-            else:
-                if full_costs_per_key[i] > click_value*2:
-                    cost_click[i] = 0
 
         u += 52
-        l += 52           
+        l += 52
 
-        '''
-            U = traff_period[i] * ver_conv[i]
-    
-            if U * cpc[i] < click_value:
+        full_full_money += full_money
+        full_full_conv += full_conv
+        
+        full_full_money_fix += full_money_fix
+        full_full_conv_fix += full_conv_fix
+        
+    #выставляем ставки
+    for i in range(1, 50):
+        if full_conv_per_key[i] > 0:
+            if full_costs_per_key[i] / full_conv_per_key[i] < click_value:
                 cost_click[i] = cost_click[i] + cost_click[i]*0.1
             else:
-                cost_click[i] = cost_click[i] - cost_click[i]*0.1'''
-               
+                cost_click[i] = cost_click[i] - cost_click[i]*0.1
+                    
+            if full_costs_per_key[i] / full_conv_per_key[i] > click_value*1.5:
+                cost_click[i] = 0
+        else:
+            if full_costs_per_key[i] > click_value*2:
+                cost_click[i] = 0
 
-    full_full_money += full_money
-    full_full_conv += full_conv
-        
-    full_full_money_fix += full_money_fix
-    full_full_conv_fix += full_conv_fix
+          
+
+    
 
 ws.cell(row=1, column=32).value = full_full_money
 ws.cell(row=1, column=33).value = full_full_conv
