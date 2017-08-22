@@ -53,7 +53,7 @@ for q in range(1):
     #задаем вероятности конверсий и количетсво трафика ключам
     for i in range(50): 
         ver_conv[i] = random.randint(1, 50) #процент конверсии умноженный на 10
-        amount_traff[i] = random.randint(10, 100)
+        amount_traff[i] = random.randint(1, 50)
 
     for x in range (1, 10):
         all_count_conv = 0
@@ -107,22 +107,26 @@ for q in range(1):
                     period_amount_traff[i][j] = amount_traff[i] // 10
                 for j in range(amount_traff[i] % 10):
                     period_amount_traff[i][j] += amount_traff[i] % 10
+            else:
+                for j in range(amount_traff[i] % 10):
+                    period_amount_traff[i][j] += amount_traff[i] % 10
+                    
 
         j = 0
-        while (day_budget < max_day_budget * 0.9) and (q <= 10):
+        while (day_budget < max_day_budget * 0.7) and (q <= 10):
             for i in range(50):
                 #считаем количество трафика за период для оптимизатора
                 traff_period[i] = round(period_amount_traff[i][j] * traffic [num_pos[i]], 0)
                 day_traffic[i] += traff_period[i]
 
                 #расходы по ключу оптимизатора
-                costs_per_key[i] = traff_period[v] * cpc[i]
+                costs_per_key[i] = traff_period[i] * cpc[i]
                 full_costs_per_key[i] += costs_per_key[i]
                 day_costs_per_key[i] += costs_per_key[i]
 
                 #дневной расход
                 day_budget += costs_per_key[i]
-                
+
             q += 1
             j += 1
 
@@ -166,6 +170,8 @@ for q in range(1):
         ws.cell(row=l, column=21).value = money
         ws.cell(row=l, column=22).value = all_count_conv
         ws.cell(row=l, column=23).value = cost_conv_period
+        ws.cell(row=l, column=26).value = q
+        
 
         full_money += money
         full_conv += all_count_conv
